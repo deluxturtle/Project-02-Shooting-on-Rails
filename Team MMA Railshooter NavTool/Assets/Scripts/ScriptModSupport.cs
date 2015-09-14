@@ -80,6 +80,9 @@ public class ScriptModSupport : MonoBehaviour
             {
                 reader.Close();
                 System.Collections.Generic.List<ScriptMovements> tempMovements = new System.Collections.Generic.List<ScriptMovements>(0);
+                System.Collections.Generic.List<ScriptEffects> tempEffects = new System.Collections.Generic.List<ScriptEffects>(0);
+                System.Collections.Generic.List<ScriptFacings> tempFacings = new System.Collections.Generic.List<ScriptFacings>(0);
+
                 GameObject[] waypoints = GameObject.FindGameObjectsWithTag("Waypoint");
                 foreach (GameObject go in waypoints)
                 {
@@ -101,7 +104,7 @@ public class ScriptModSupport : MonoBehaviour
                             case MovementTypes.MOVE:
                                 tempMove = new ScriptMovements();
                                 tempMove.moveType = MovementTypes.MOVE;
-                                tempMove.movementTime = System.Convert.ToSingle(words[1]);
+                                tempMove.movementTime = (float)System.Convert.ToDouble(words[1]);
                                 coords = words[2].Split(',');
                                 target = new Vector3(System.Convert.ToSingle(coords[0]),
                                     System.Convert.ToSingle(coords[1]), System.Convert.ToSingle(coords[2]));
@@ -112,12 +115,14 @@ public class ScriptModSupport : MonoBehaviour
                                 tempMove = new ScriptMovements();
                                 tempMove.moveType = MovementTypes.WAIT;
                                 tempMove.movementTime = System.Convert.ToSingle(words[1]);
+								tempMove.movementTime = (float)System.Convert.ToDouble(words[1]);
                                 tempMovements.Add(tempMove);
                                 break;
                             case MovementTypes.BEZIER:
                                 tempMove = new ScriptMovements();
                                 tempMove.moveType = MovementTypes.BEZIER;
                                 tempMove.movementTime = System.Convert.ToSingle(words[1]);
+								tempMove.movementTime = (float)System.Convert.ToDouble(words[1]);
                                 coords = words[2].Split(',');
                                 target = new Vector3(System.Convert.ToSingle(coords[0]),
                                     System.Convert.ToSingle(coords[1]), System.Convert.ToSingle(coords[2]));
@@ -136,33 +141,62 @@ public class ScriptModSupport : MonoBehaviour
                         ScriptSplatter tempSplatter;
                         ScriptLookAtTarget tempLookAt;
                         ScriptCameraShake tempShake;
-
-
+                        ScriptEffects tempEffect;
                         string[] words = keywords[1].Split(' ');
                         switch ((EffectTypes)System.Enum.Parse(typeof(EffectTypes), words[0].ToUpper()))
                         {
+                            //@ mike @ reference Marshall
                             case EffectTypes.FADE:
+
                                 tempFade = new ScriptScreenFade();
                                 tempFade.fadeInLength = (float)System.Convert.ToSingle(words[1]);
+
+                                //Fade waypoint spawning Code
+                                tempEffect = new ScriptEffects();
+                                tempEffect.effectType = EffectTypes.FADE;
+                                tempEffect.effectTime = System.Convert.ToSingle(words[1]);
+                                tempEffect.fadeInTime = System.Convert.ToSingle(words[2]);
+                                tempEffect.fadeOutTime = System.Convert.ToSingle(words[3]);
+                                tempEffects.Add(tempEffect);
+
                                 break;
                             case EffectTypes.SHAKE:
                                 //Shake waypoint spawning Code
+                                tempEffect = new ScriptEffects();
+                                tempEffect.effectType = EffectTypes.SHAKE;
+                                tempEffect.effectTime = System.Convert.ToSingle(words[1]);
+                                tempEffect.magnitude = System.Convert.ToSingle(words[2]);
+                                tempEffects.Add(tempEffect);
                                 break;
                             case EffectTypes.SPLATTER:
                                 //Splatter waypoint spawning Code
+                                tempEffect = new ScriptEffects();
+                                tempEffect.effectType = EffectTypes.SPLATTER;
+                                tempEffect.effectTime = System.Convert.ToSingle(words[1]);
+                                tempEffect.fadeInTime = System.Convert.ToSingle(words[2]);
+                                tempEffect.fadeOutTime = System.Convert.ToSingle(words[3]);
+                                tempEffect.imageScale = System.Convert.ToSingle(words[4]);
                                 break;
                             case EffectTypes.WAIT:
                                 //Effect Wait waypoint spawning Code
+                                tempEffect = new ScriptEffects();
+                                tempEffect.effectType = EffectTypes.WAIT;
+                                tempEffect.effectTime = System.Convert.ToSingle(words[1]);
+                                tempEffects.Add(tempEffect);
                                 break;
+                                //end @ mike
                         }
                     }
                     else if (keywords[0].ToUpper() == "F")
                     {
+                        ScriptFacings tempFacing; 
+
                         string[] words = keywords[1].Split(' ');
                         switch ((FacingTypes)System.Enum.Parse(typeof(FacingTypes), words[0].ToUpper()))
                         {
                             case FacingTypes.LOOKAT:
                                 //Look At waypoint spawning Code
+                                
                                 break;
                             case FacingTypes.LOOKCHAIN:
                                 //Look Chain waypoint spawning Code
@@ -178,6 +212,11 @@ public class ScriptModSupport : MonoBehaviour
                 for (int i = 0; i < tempMovements.Count; i++)
                 {
                     player.movements[i] = tempMovements[i];
+                }
+                player.effects = new ScriptEffects[tempEffects.Count];
+                for (int i = 0; i < tempEffects.Count; i++)
+                {
+                    player.effects[i] = tempEffects[i];
                 }
             }
         }
